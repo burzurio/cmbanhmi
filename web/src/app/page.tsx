@@ -1,8 +1,20 @@
 "use client";
 import { useState } from "react";
 
-export default function cmBanhMiLanding() {
+
+export default function CMBanhMiLanding() {
   const [open, setOpen] = useState(false);
+
+    const images = [
+      "/images/Beef-Banh.jpg/",
+      "/images/Lemon-Grass-Chicken.jpg",
+      "/images/Egg-Banh-Mi.jpg",
+      "/images/Chili-Oil-Wonton.jpg",
+      "/images/Tiger-Boba.jpg",
+      "/images/Thai-Tea.jpg",
+      "/images/Strawberry-Matcha.jpg",
+  ];
+  
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -18,8 +30,8 @@ export default function cmBanhMiLanding() {
           <nav className="hidden items-center gap-8 md:flex">
             <a href="#menu" className="text-sm font-medium hover:text-red-600">Menu</a>
             <a href="#featured" className="text-sm font-medium hover:text-red-600">Featured</a>
-            <a href="#story" className="text-sm font-medium hover:text-red-600">Our Story</a>
-            <a href="#locations" className="text-sm font-medium hover:text-red-600">Locations</a>
+            <a href="#story" className="text-sm font-medium hover:text-red-600">About</a>
+            <a href="#locations" className="text-sm font-medium hover:text-red-600">Contact</a>
             <a href="#rewards" className="text-sm font-medium hover:text-red-600">Rewards</a>
           </nav>
 
@@ -65,34 +77,46 @@ export default function cmBanhMiLanding() {
       </header>
 
       {/* HERO */}
-      <section id="home" className="relative isolate flex min-h-[88vh] items-center overflow-hidden pt-20">
-        {/* Replace this gradient with a hero image later: */}
-        {/* Example (later): <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: 'url(/images/hero.jpg)'}} /> */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900/60 to-transparent opacity-80" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(239,68,68,0.25),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(239,68,68,0.15),transparent_30%)]" />
+     <section
+  id="home"
+  className="relative flex min-h-[88vh] items-center justify-center overflow-hidden pt-20"
+>
+  {/* Background image */}
+  <div
+    className="absolute inset-0 -z-0 bg-cover bg-center"
+    style={{ backgroundImage: "url('/images/hero/hero.jpg')" }}
+  />
 
-        {/* Placeholder media block */}
-        <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          <div className="h-[70%] w-[90%] rounded-3xl border border-dashed border-white/30 bg-white/5" />
-        </div>
+  {/* Dark overlay */}
+  <div className="absolute inset-0 -z-0 bg-black/60" />
 
-        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Freshly Shaken, Boldly Brewed
-          </h1>
-          <p className="max-w-2xl text-base text-white/80 sm:text-lg">
-            A sleek, image-ready layout inspired by Sharetea. Swap in product photos and store visuals later.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <a href="#menu" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm transition hover:shadow">
-              Explore Menu
-            </a>
-            <a href="#locations" className="rounded-full border border-white/70 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
-              Find a Store
-            </a>
-          </div>
-        </div>
-      </section>
+  {/* TEXT CONTENT */}
+  <div className="relative z-00 mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center">
+    <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+      Vietnamese Sandwiches, Made Fresh
+    </h1>
+
+    <p className="max-w-2xl text-base text-white/80 sm:text-lg">
+      Fresh ingredients. Bold flavors. Made daily.
+    </p>
+
+    <div className="flex gap-3">
+      <a
+        href="/menu"
+        className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900"
+      >
+        Explore Menu
+      </a>
+
+      <a
+        href="/about"
+        className="rounded-full border border-white/70 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+      >
+        Find a Store
+      </a>
+    </div>
+  </div>
+</section>
 
       {/* RIBBON / ANNOUNCEMENT */}
       <section className="border-y border-gray-200 bg-gray-50">
@@ -107,55 +131,47 @@ export default function cmBanhMiLanding() {
       {/* FEATURED (carousel-style strip without JS) */}
       <section id="featured" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-end justify-between">
-          <h2 className="text-2xl font-bold">Featured Drinks</h2>
+          <h2 className="text-2xl font-bold">Featured Sandwiches</h2>
           <a href="#menu" className="text-sm font-semibold text-red-600 hover:text-red-700">View all</a>
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <article key={i} className="group overflow-hidden rounded-2xl border border-gray-200">
-              {/* Replace this block with an <img> later */}
-              <div className="aspect-[4/5] w-full bg-gray-100">
-                <div className="flex h-full items-center justify-center text-xs text-gray-500">
-                  Image placeholder {i + 1}
-                </div>
-              </div>
-              <div className="p-3">
-                <h3 className="text-sm font-semibold">Drink Name</h3>
-                <p className="text-xs text-gray-500">Signature series</p>
-              </div>
-            </article>
-          ))}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+  {images.map((src, i) => (
+    <article key={i} className="overflow-hidden rounded-2xl border border-gray-200">
+      <img
+        src={src}
+        alt="Food"
+        className="h-full w-full object-cover aspect-[4/5]"
+      />
+    </article>
+  ))}
+</div>
         </div>
       </section>
 
       {/* MENU PREVIEW GRID */}
-      <section id="menu" className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <h2 className="mb-8 text-2xl font-bold">Menu Highlights</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {["Milk Tea", "Fruit Tea", "Toppings"].map((cat) => (
-              <div key={cat} className="rounded-2xl border border-gray-200 p-6">
-                <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-xl bg-gray-100">
-                  <div className="flex h-full items-center justify-center text-xs text-gray-500">Category image</div>
-                </div>
-                <h3 className="text-lg font-semibold">{cat}</h3>
-                <ul className="mt-3 space-y-1 text-sm text-gray-600">
-                  <li>Item one</li>
-                  <li>Item two</li>
-                  <li>Item three</li>
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+  <section id="menu" className="bg-white">
+  <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
+    <h2 className="text-2xl font-bold">Explore Our Menu</h2>
+    <p className="mx-auto mt-3 max-w-xl text-gray-600">
+      Browse banh mi, soups, noodles, drinks, and more.
+    </p>
+
+    <a
+      href="/menu"
+      className="mt-6 inline-block rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+    >
+      View Full Menu
+    </a>
+  </div>
+</section>
 
       {/* STORY / BRAND */}
       <section id="story" className="bg-gray-50">
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8">
           <div>
-            <h2 className="text-2xl font-bold">Brewed with care since 20XX</h2>
+            <h2 className="text-2xl font-bold">**DELETE**</h2>
             <p className="mt-4 text-gray-600">
               I may use this section to tell origin story, sourcing, or quality promise. Keeping it short with visual-forward as the images will do most of the talking later.
             </p>
@@ -176,13 +192,13 @@ export default function cmBanhMiLanding() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-red-600 to-red-500" />
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-16 text-white sm:px-6 lg:grid-cols-2 lg:px-8">
           <div>
-            <h2 className="text-2xl font-bold">Rewards & App</h2>
+            <h2 className="text-2xl font-bold">Earn Points Each Time You Order!</h2>
             <p className="mt-3 max-w-xl text-white/90">
               Tease your points program and mobile app. Add your App Store and Google Play badges later.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900">Download iOS</a>
-              <a href="#" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900">Download Android</a>
+              <a href="#" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900">Join Rewards</a>
+              <a href="#" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900">View Order History</a>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -236,7 +252,7 @@ export default function cmBanhMiLanding() {
               <div className="h-7 w-7 rounded-full bg-red-600" />
               <span className="text-lg font-semibold">CM Banh Mi</span>
             </div>
-            <p className="text-sm text-gray-600">Refreshing moments, any time.</p>
+            <p className="text-sm text-gray-600">Fresh Vietnamese sandwiches, From Our Family to Yours!</p>
           </div>
           <div>
             <h3 className="text-sm font-semibold">Explore</h3>
@@ -249,8 +265,8 @@ export default function cmBanhMiLanding() {
           <div>
             <h3 className="text-sm font-semibold">Company</h3>
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
-              <li><a href="#story" className="hover:text-gray-900">Our Story</a></li>
-              <li><a href="#locations" className="hover:text-gray-900">Locations</a></li>
+              <li><a href="#story" className="hover:text-gray-900">About</a></li>
+              <li><a href="#locations" className="hover:text-gray-900">Contact</a></li>
               <li><a href="#" className="hover:text-gray-900">Careers</a></li>
             </ul>
           </div>
@@ -268,5 +284,4 @@ export default function cmBanhMiLanding() {
       </footer>
     </div>
   );
-}
-
+}  
