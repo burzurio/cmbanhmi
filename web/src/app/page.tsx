@@ -1,33 +1,48 @@
 "use client";
-import { useState } from "react";
 
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const images = [
+  "/images/hero/Beef-Banh.jpg",
+  "/images/hero/Lemon-Grass-Chicken.jpg",
+  "/images/hero/Chili-Oil-Wonton.jpg",
+  "/images/hero/Tiger-Boba.jpg",
+  "/images/hero/Thai-Tea.jpg",
+  "/images/hero/Strawberry-Matcha.jpg",
+];
 
 export default function CMBanhMiLanding() {
   const [open, setOpen] = useState(false);
+  const [featuredIndex, setFeaturedIndex] = useState(0);
 
-    const images = [
-      "/images/Beef-Banh.jpg/",
-      "/images/Lemon-Grass-Chicken.jpg",
-      "/images/Egg-Banh-Mi.jpg",
-      "/images/Chili-Oil-Wonton.jpg",
-      "/images/Tiger-Boba.jpg",
-      "/images/Thai-Tea.jpg",
-      "/images/Strawberry-Matcha.jpg",
-  ];
-  
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setFeaturedIndex((index) => (index + 1) % images.length);
+    }, 3500);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const previousFeatured = () => {
+    setFeaturedIndex((index) => (index - 1 + images.length) % images.length);
+  };
+
+  const nextFeatured = () => {
+    setFeaturedIndex((index) => (index + 1) % images.length);
+  };
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* NAVBAR */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-200/60 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
           <a href="#home" className="flex items-center gap-2">
-            {/* Replace with your logo image later */}
-            <div className="h-8 w-8 rounded-full bg-red-600" />
-            <span className="text-xl font-semibold tracking-tight">CM Banh Mi</span>
+            <div className="h-7 w-7 rounded-full bg-red-600" />
+            <span className="text-lg font-semibold tracking-tight">CM Banh Mi</span>
           </a>
 
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-6 md:flex">
             <a href="#menu" className="text-sm font-medium hover:text-red-600">Menu</a>
             <a href="#featured" className="text-sm font-medium hover:text-red-600">Featured</a>
             <a href="#story" className="text-sm font-medium hover:text-red-600">About</a>
@@ -36,12 +51,11 @@ export default function CMBanhMiLanding() {
           </nav>
 
           <div className="hidden md:block">
-            <a href="#locations" className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">Find a Store</a>
+            <a href="#locations" className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-red-700">Find a Store</a>
           </div>
 
-          {/* Mobile menu button */}
           <button
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setOpen((value) => !value)}
             className="inline-flex items-center justify-center rounded-md p-2 md:hidden"
             aria-label="Toggle Menu"
           >
@@ -55,7 +69,6 @@ export default function CMBanhMiLanding() {
           </button>
         </div>
 
-        {/* Mobile menu panel */}
         {open && (
           <div className="border-t border-gray-200 bg-white md:hidden">
             <nav className="space-y-1 px-4 py-3">
@@ -66,189 +79,188 @@ export default function CMBanhMiLanding() {
                 { href: "#locations", label: "Locations" },
                 { href: "#rewards", label: "Rewards" },
               ].map((link) => (
-                <a key={link.href} href={link.href} onClick={() => setOpen(false)} className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-50">
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-50"
+                >
                   {link.label}
                 </a>
               ))}
-              <a href="#locations" onClick={() => setOpen(false)} className="mt-2 block rounded-full bg-red-600 px-4 py-2 text-center text-sm font-semibold text-white">Find a Store</a>
+              <a
+                href="#locations"
+                onClick={() => setOpen(false)}
+                className="mt-2 block rounded-full bg-red-600 px-4 py-2 text-center text-sm font-semibold text-white"
+              >
+                Find a Store
+              </a>
             </nav>
           </div>
         )}
       </header>
 
-      {/* HERO */}
-     <section
-  id="home"
-  className="relative flex min-h-[88vh] items-center justify-center overflow-hidden pt-20"
->
-  {/* Background image */}
-  <div
-    className="absolute inset-0 -z-0 bg-cover bg-center"
-    style={{ backgroundImage: "url('/images/hero/hero.jpg')" }}
-  />
+      <section id="home" className="relative flex min-h-[68vh] items-center justify-center overflow-hidden pt-16">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/hero/hero.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-black/60" />
 
-  {/* Dark overlay */}
-  <div className="absolute inset-0 -z-0 bg-black/60" />
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+            Vietnamese Sandwiches, Made Fresh
+          </h1>
+          <p className="max-w-xl text-base text-white/85">
+            Fresh ingredients. Bold flavors. Made daily.
+          </p>
+          <div className="flex gap-3">
+            <a href="/menu" className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-gray-900">
+              Explore Menu
+            </a>
+            <a
+              href="#locations"
+              className="rounded-full border border-white/70 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10"
+            >
+              Find a Store
+            </a>
+          </div>
+        </div>
+      </section>
 
-  {/* TEXT CONTENT */}
-  <div className="relative z-00 mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 text-center">
-    <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-      Vietnamese Sandwiches, Made Fresh
-    </h1>
-
-    <p className="max-w-2xl text-base text-white/80 sm:text-lg">
-      Fresh ingredients. Bold flavors. Made daily.
-    </p>
-
-    <div className="flex gap-3">
-      <a
-        href="/menu"
-        className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900"
-      >
-        Explore Menu
-      </a>
-
-      <a
-        href="/about"
-        className="rounded-full border border-white/70 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-      >
-        Find a Store
-      </a>
-    </div>
-  </div>
-</section>
-
-      {/* RIBBON / ANNOUNCEMENT */}
+      
       <section className="border-y border-gray-200 bg-gray-50">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-6 lg:px-8">
           <p className="font-medium">Limited-time flavors dropping soon.</p>
           <a href="#menu" className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-3 py-1.5 text-white">
-            Preview Menu <span aria-hidden>→</span>
+            Preview Menu <span aria-hidden>-&gt;</span>
           </a>
         </div>
       </section>
 
-      {/* FEATURED (carousel-style strip without JS) */}
-      <section id="featured" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-end justify-between">
-          <h2 className="text-2xl font-bold">Featured Sandwiches</h2>
-          <a href="#menu" className="text-sm font-semibold text-red-600 hover:text-red-700">View all</a>
+      <section id="featured" className="mx-auto max-w-md px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-3 flex max-w-[350px] items-center justify-between">
+          <h2 className="text-xl font-bold sm:text-2xl">Featured Sandwiches</h2>
+          <Link href="/menu" className="text-sm font-semibold text-red-600 hover:text-red-700">View menu</Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-  {images.map((src, i) => (
-    <article key={i} className="overflow-hidden rounded-2xl border border-gray-200">
-      <img
-        src={src}
-        alt="Food"
-        className="h-full w-full object-cover aspect-[4/5]"
-      />
-    </article>
-  ))}
-</div>
+        <div className="mx-auto flex max-w-[430px] items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={previousFeatured}
+            className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-300 text-lg font-semibold hover:bg-gray-50 sm:flex"
+            aria-label="Previous featured item"
+          >
+            &lt;
+          </button>
+
+          <Link
+            href="/menu"
+            className="group block"
+          >
+            <div className="relative h-[320px] w-[230px] overflow-hidden rounded-lg border border-gray-200 bg-gray-100 sm:h-[350px] sm:w-[250px]">
+              <Image
+                src={images[featuredIndex]}
+                alt={`Featured food ${featuredIndex + 1}`}
+                fill
+                sizes="(min-width: 640px) 250px, 230px"
+                className="object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-10">
+                <span className="text-sm font-semibold text-white">Explore the full menu</span>
+              </div>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            onClick={nextFeatured}
+            className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-300 text-lg font-semibold hover:bg-gray-50 sm:flex"
+            aria-label="Next featured item"
+          >
+            &gt;
+          </button>
+        </div>
+
+        <div className="mt-3 flex items-center justify-center gap-2 sm:hidden">
+          <button
+            type="button"
+            onClick={previousFeatured}
+            className="h-8 w-8 rounded-full border border-gray-300 text-base font-semibold"
+            aria-label="Previous featured item"
+          >
+            &lt;
+          </button>
+          <button
+            type="button"
+            onClick={nextFeatured}
+            className="h-8 w-8 rounded-full border border-gray-300 text-base font-semibold"
+            aria-label="Next featured item"
+          >
+            &gt;
+          </button>
         </div>
       </section>
 
-      {/* MENU PREVIEW GRID */}
-  <section id="menu" className="bg-white">
-  <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-    <h2 className="text-2xl font-bold">Explore Our Menu</h2>
-    <p className="mx-auto mt-3 max-w-xl text-gray-600">
-      Browse banh mi, soups, noodles, drinks, and more.
-    </p>
+      <section id="menu" className="bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-10 text-center sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold">Explore Our Menu</h2>
+          <p className="mx-auto mt-2 max-w-xl text-gray-600">
+            Browse banh mi, soups, noodles, drinks, and more.
+          </p>
+          <a
+            href="/menu"
+            className="mt-4 inline-block rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            View Full Menu
+          </a>
+        </div>
+      </section>
 
-    <a
-      href="/menu"
-      className="mt-6 inline-block rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
-    >
-      View Full Menu
-    </a>
-  </div>
-</section>
-
-      {/* STORY / BRAND */}
       <section id="story" className="bg-gray-50">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:px-8">
           <div>
-            <h2 className="text-2xl font-bold">**DELETE**</h2>
-            <p className="mt-4 text-gray-600">
+            <h2 className="text-2xl font-bold">Our Story</h2>
+            <p className="mt-2 text-gray-600">
               I may use this section to tell origin story, sourcing, or quality promise. Keeping it short with visual-forward as the images will do most of the talking later.
             </p>
-            <div className="mt-6 flex gap-3">
-              <a href="#rewards" className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white">Join Rewards</a>
-              <a href="#locations" className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold">Find a Store</a>
+            <div className="mt-4 flex gap-3">
+              <a href="#rewards" className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white">Join Rewards</a>
+              <a href="#locations" className="rounded-full border border-gray-300 px-5 py-2 text-sm font-semibold">Find a Store</a>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-[3/4] rounded-2xl bg-gray-200" />
-            <div className="aspect-[3/4] translate-y-6 rounded-2xl bg-gray-200" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="aspect-[4/5] rounded-lg bg-gray-200" />
+            <div className="aspect-[4/5] rounded-lg bg-gray-200" />
           </div>
         </div>
       </section>
 
-      {/* REWARDS / APP BANNER */}
       <section id="rewards" className="relative isolate overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-red-600 to-red-500" />
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-16 text-white sm:px-6 lg:grid-cols-2 lg:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-6 px-4 py-10 text-white sm:px-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:px-8">
           <div>
             <h2 className="text-2xl font-bold">Earn Points Each Time You Order!</h2>
-            <p className="mt-3 max-w-xl text-white/90">
+            <p className="mt-2 max-w-xl text-white/90">
               Tease your points program and mobile app. Add your App Store and Google Play badges later.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-4 flex flex-wrap gap-3">
               <a href="#" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900">Join Rewards</a>
               <a href="#" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900">View Order History</a>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-[9/16] rounded-xl bg-white/10" />
-            <div className="aspect-[9/16] translate-y-6 rounded-xl bg-white/10" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="aspect-[3/4] rounded-lg bg-white/10" />
+            <div className="aspect-[3/4] rounded-lg bg-white/10" />
           </div>
         </div>
       </section>
 
-      {/* LOCATIONS / STORE LOCATOR CTA */}
-      <section id="locations" className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
-            <div className="order-2 lg:order-1">
-              <h2 className="text-2xl font-bold">Find a Store Near You</h2>
-              <p className="mt-3 text-gray-600">Integrate a map or store list later. For now this is a clean CTA section.</p>
-              <form className="mt-6 flex max-w-md gap-2">
-                <input type="text" placeholder="Enter city or ZIP" className="w-full rounded-xl border border-gray-300 px-4 py-2 outline-none ring-red-600 focus:ring" />
-                <button type="button" className="rounded-xl bg-gray-900 px-4 py-2 text-white">Search</button>
-              </form>
-            </div>
-            <div className="order-1 lg:order-2">
-              <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-100">
-                <div className="flex h-full items-center justify-center text-xs text-gray-500">Map / store image placeholder</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* SOCIAL STRIP */}
-      <section className="bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Follow Us</h2>
-            <a href="#" className="text-sm font-semibold text-red-600">@cmbanhmi</a>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-square rounded-xl bg-gray-200" />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
       <footer className="border-t border-gray-200 bg-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-12 sm:px-6 md:grid-cols-4 lg:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 md:grid-cols-4 lg:px-8">
           <div>
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-2 flex items-center gap-2">
               <div className="h-7 w-7 rounded-full bg-red-600" />
               <span className="text-lg font-semibold">CM Banh Mi</span>
             </div>
@@ -278,10 +290,10 @@ export default function CMBanhMiLanding() {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-200 py-6 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} CM Banh Mi. All rights reserved.
+        <div className="border-t border-gray-200 py-4 text-center text-xs text-gray-500">
+          &copy; {new Date().getFullYear()} CM Banh Mi. All rights reserved.
         </div>
       </footer>
     </div>
   );
-}  
+}

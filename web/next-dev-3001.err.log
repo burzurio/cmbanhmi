@@ -1,0 +1,135 @@
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.uub212zof2q'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.uub212zof2q'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.rul01dlfr6'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.rul01dlfr6'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.uub212zof2q'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.uub212zof2q'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.lei0ymf4vt'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.lei0ymf4vt'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.lseeuplfz6'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.lseeuplfz6'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.ek5ht4fwv1'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.ek5ht4fwv1'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.ehv2bhjo7g'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.ehv2bhjo7g'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.ek5ht4fwv1'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.ek5ht4fwv1'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.5ao42828o3w'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.5ao42828o3w'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.z9ega7x0lu'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.z9ega7x0lu'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.xr55me1p7yr'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.xr55me1p7yr'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.sth4meful7'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.sth4meful7'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.xr55me1p7yr'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.xr55me1p7yr'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.upiqnkbslyo'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.upiqnkbslyo'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.vor2iyal6y'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.vor2iyal6y'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.a2fml00swqh'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.a2fml00swqh'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.umrz4wybqks'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.umrz4wybqks'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.axtcxsw668k'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.axtcxsw668k'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.umrz4wybqks'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.umrz4wybqks'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.h1i82xu23p4'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.h1i82xu23p4'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.gpjy6f3dqg'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.gpjy6f3dqg'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Owner\cmbanhmi\web\.next\static\development\_buildManifest.js.tmp.bl4lqun0xu7'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Owner\\cmbanhmi\\web\\.next\\static\\development\\_buildManifest.js.tmp.bl4lqun0xu7'
+}

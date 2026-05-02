@@ -1,0 +1,18 @@
+
+> web@0.1.0 dev
+> next dev --turbopack --hostname 127.0.0.1 --port 3001
+
+   ▲ Next.js 15.5.0 (Turbopack)
+   - Local:        http://127.0.0.1:3001
+   - Network:      http://127.0.0.1:3001
+
+ ✓ Starting...
+Creating turbopack project { dir: 'C:\\Users\\Owner\\cmbanhmi\\web', testMode: true }
+ ✓ Ready in 971ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s
+ GET / 200 in 2582ms
+ ✓ Compiled /menu in 192ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 931ms
+ ✓ Compiled /favicon.ico in 143ms
