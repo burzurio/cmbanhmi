@@ -8,11 +8,12 @@
 
  ✓ Starting...
 Creating turbopack project { dir: 'C:\\Users\\Owner\\cmbanhmi\\web', testMode: true }
- ✓ Ready in 971ms
+ ✓ Ready in 957ms
  ○ Compiling / ...
- ✓ Compiled / in 2.3s
- GET / 200 in 2582ms
- ✓ Compiled /menu in 192ms
+ ✓ Compiled / in 2.8s
+ GET / 200 in 3160ms
+ GET / 200 in 328ms
+ ✓ Compiled /menu in 266ms
  ○ Compiling /_error ...
- ✓ Compiled /_error in 931ms
- ✓ Compiled /favicon.ico in 143ms
+ ✓ Compiled /_error in 917ms
+ ✓ Compiled /favicon.ico in 138ms
