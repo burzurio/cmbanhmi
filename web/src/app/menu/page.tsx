@@ -4,6 +4,7 @@ import { menu } from "@/lib/menu";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const categories = ["Banh Mi", "Soups / Wontons / Noodles"];
 
@@ -17,8 +18,31 @@ const logoMenuLinks = [
 ];
 
 export default function MenuPage() {
+  const [cart, setCart] = useState<number[]>([]);
+  const router = useRouter();
   const [logoMenuOpen, setLogoMenuOpen] = useState(false);
+  const cartItems = cart.map((cartId) =>
+  menu.find((item) => item.id === cartId)
+);
 
+  const total = cartItems.reduce((sum, item) => {
+    if (!item) return sum;
+    return sum + item.price;
+  }, 0);
+
+  const groupedCartItems = cartItems.reduce((acc, item) => {
+    if (!item) return acc;
+
+    const existingItem = acc.find((cartItem) => cartItem.id === item.id);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      acc.push({ ...item, quantity: 1 });
+    }
+
+    return acc;
+  }, [] as Array<(typeof menu)[number] & { quantity: number }>);
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <header className="fixed inset-x-0 top-0 z-50 w-screen border-b border-gray-200 bg-white">
@@ -87,15 +111,71 @@ export default function MenuPage() {
       </header>
 
       <main className="px-4 pb-5 pt-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-7 text-center">
-            <h1 className="text-3xl font-extrabold tracking-tight text-orange-500 sm:text-4xl">
-              CM Banh Mi Menu
-            </h1>
-            <p className="mt-1 text-sm text-gray-600 sm:text-base">
-              Fresh sandwiches, soups, noodles, drinks, and add-ons.
-            </p>
+       <div className="mx-auto mb-4 max-w-5xl rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="font-bold text-orange-700">Current Order</h2>
+            <div className="flex items-center gap-3">
+              <span className="font-semibold text-orange-700">
+                {cart.length} item{cart.length === 1 ? "" : "s"}
+              </span>
+
+              {cart.length > 0 && (
+                <button
+                  onClick={() => setCart([])}
+                  className="rounded bg-gray-800 px-2 py-1 text-xs font-semibold text-white hover:bg-black"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
+          <div className="mx-auto max-w 5x1">
+
+          {cart.length === 0 ? (
+            <p className="text-gray-600">No items added yet.</p>
+          ) : (
+            <>
+              <ul className="space-y-1">
+                {groupedCartItems.map((item) => (
+                  <li key={item.id} className="flex items-center justify-between text-gray-800">
+                    <span>
+                      {item.name} x{item.quantity}
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+
+                      <button
+                        onClick={() => {
+                          const itemIndex = cart.findIndex((cartId) => cartId === item.id);
+                          setCart(cart.filter((_, index) => index !== itemIndex));
+                        }}
+                        className="rounded bg-red-500 px-2 py-1 text-xs font-semibold text-white hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-3 flex justify-between border-t border-orange-200 pt-2 font-bold text-orange-700">
+                <span>Total</span>
+                <span>${total.toFixed(2)}</span>
+              </div>
+              <button
+                disabled={cart.length === 0}
+                onClick={() => {
+                  localStorage.setItem("cart", JSON.stringify(cart));
+                  router.push("/order");
+                }}
+                className="mt-4 w-full rounded bg-orange-500 px-4 py-2 font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                Checkout
+              </button>
+            </>
+          )}
+        </div>
 
           {categories.map((category) => (
             <section key={category} className="mb-6 last:mb-0">
@@ -111,7 +191,7 @@ export default function MenuPage() {
                   {menu
                     .filter((item) => item.category === category)
                     .map((item) => (
-                      <div key={item.id} className="flex items-baseline gap-2">
+                      <div key={item.id} className="flex items-center gap-2 rounded-md p-2 transition hover:bg-gray-50">
                         <span className="font-bold">
                           #{item.id} {item.name}
                         </span>
@@ -120,7 +200,12 @@ export default function MenuPage() {
 
                         <span className="font-semibold text-green-700">
                           ${item.price.toFixed(2)}
+                          
                         </span>
+                        <button onClick={() => setCart([...cart, item.id])}
+                            className="rounded bg-orange-500 px-2 py-1 text-xs font-semibold text-white hover:bg-orange-600">
+                              Add 
+                            </button>
                       </div>
                     ))}
                 </div>
