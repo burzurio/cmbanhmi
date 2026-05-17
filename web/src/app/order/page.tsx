@@ -1,10 +1,59 @@
 "use client";
 
-import { menu } from "@/lib/menu";
+import { menuItems, type MenuItem } from "@/lib/menu";
 import { useEffect, useState } from "react";
 
+type CartItem = {
+  cartId: string;
+  itemId: MenuItem["id"];
+  name: string;
+  price: number;
+  optionName?: string;
+};
+
+function createCartItem(item: MenuItem, optionName?: string): CartItem {
+  const option = item.options?.find((itemOption) => itemOption.name === optionName) ?? item.options?.[0];
+
+  return {
+    cartId: `${item.id}-${option?.name ?? "default"}-${Date.now()}-${Math.random()}`,
+    itemId: item.id,
+    name: item.name,
+    price: item.price ?? option?.price ?? 0,
+    optionName: option?.name,
+  };
+}
+
+function isCartItem(item: unknown): item is CartItem {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    "cartId" in item &&
+    "itemId" in item &&
+    "name" in item &&
+    "price" in item &&
+    typeof item.price === "number"
+  );
+}
+
+function normalizeCart(savedCart: string): CartItem[] {
+  const parsed = JSON.parse(savedCart) as unknown;
+
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+
+  return parsed.flatMap((cartEntry) => {
+    if (isCartItem(cartEntry)) {
+      return [cartEntry];
+    }
+
+    const item = menuItems.find((menuItem) => menuItem.id === cartEntry);
+    return item ? [createCartItem(item)] : [];
+  });
+}
+
 export default function OrderPage() {
-  const [cart, setCart] = useState<number[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [pickupNotes, setPickupNotes] = useState("");
@@ -14,32 +63,24 @@ export default function OrderPage() {
     const savedCart = localStorage.getItem("cart");
 
     if (savedCart) {
-      setCart(JSON.parse(savedCart));
+      setCart(normalizeCart(savedCart));
     }
   }, []);
 
-  const cartItems = cart.map((cartId) =>
-    menu.find((item) => item.id === cartId)
-  );
-
-  const groupedCartItems = cartItems.reduce((acc, item) => {
-    if (!item) return acc;
-
-    const existingItem = acc.find((cartItem) => cartItem.id === item.id);
+  const groupedCartItems = cart.reduce((acc, item) => {
+    const groupKey = `${item.itemId}-${item.optionName ?? "default"}`;
+    const existingItem = acc.find((cartItem) => cartItem.groupKey === groupKey);
 
     if (existingItem) {
       existingItem.quantity += 1;
     } else {
-      acc.push({ ...item, quantity: 1 });
+      acc.push({ ...item, groupKey, quantity: 1 });
     }
 
     return acc;
-  }, [] as Array<(typeof menu)[number] & { quantity: number }>);
+  }, [] as Array<CartItem & { groupKey: string; quantity: number }>);
 
-  const total = cartItems.reduce((sum, item) => {
-    if (!item) return sum;
-    return sum + item.price;
-  }, 0);
+  const total = cart.reduce((sum, item) => sum + item.price, 0);
   
   function formatPickupTime(time: string) {
   if (!time) return "";
@@ -122,11 +163,12 @@ export default function OrderPage() {
               <ul className="mt-3 space-y-2">
                 {groupedCartItems.map((item) => (
                   <li
-                    key={item.id}
+                    key={item.groupKey}
                     className="flex items-center justify-between text-gray-800"
                   >
                     <span>
-                      {item.name} x{item.quantity}
+                      {item.name}
+                      {item.optionName ? ` (${item.optionName})` : ""} x{item.quantity}
                     </span>
                     <span>${(item.price * item.quantity).toFixed(2)}</span>
                   </li>
