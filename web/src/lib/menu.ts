@@ -14,6 +14,8 @@ export type MenuItem = {
 export const menuCategories = [
   "Bánh Mì",
   "Soups/Wontons/Noodles",
+  "Steamed Baos",
+  "Desserts",
   "Add-ons & Extras",
   "Milk Tea",
   "Specialty Drinks",
@@ -119,6 +121,37 @@ export const menuItems: MenuItem[] = [
   { id: 21, name: "Meatball Soup w/ Bread", category: "Soups/Wontons/Noodles", price: 14.5, tags: ["Contains tomato"] },
   { id: 22, name: "Egg Drop Soup", category: "Soups/Wontons/Noodles", price: 8.5 },
 
+  // STEAMED BAOS
+  { id: "bbq-pork-bao", name: "BBQ Pork Bao", category: "Steamed Baos", price: 4.25 },
+  { id: "chicken-bao", name: "Chicken Bao", category: "Steamed Baos", price: 4.25 },
+  { id: "pork-veggie-bao", name: "Pork & Veggie Bao", category: "Steamed Baos", price: 4.25 },
+  { id: "vegetarian-bao", name: "Vegetarian Bao", category: "Steamed Baos", price: 4.25 },
+  { id: "large-red-bean-bao", name: "Large Red Bean Bao", category: "Steamed Baos", price: 3.25 },
+  { id: "red-bean-animal-bao", name: "Red Bean Animal Bao", category: "Steamed Baos", price: 3 },
+  { id: "egg-custard-animal-bao", name: "Egg Custard Animal Bao", category: "Steamed Baos", price: 3 },
+
+  // DESSERTS
+  { id: "fudge-brownie", name: "Fudge Brownie", category: "Desserts", price: 4.5 },
+  {
+    id: "triple-trouble-fudge-brownie",
+    name: "Triple Trouble Fudge Brownie",
+    category: "Desserts",
+    price: 4.75,
+    description: "Butterscotch, Roasted Coconut, Chocolate Chips",
+  },
+  { id: "peanut-butter-fudge-brownie", name: "Peanut Butter Fudge Brownie", category: "Desserts", price: 4.75 },
+  { id: "chocolate-chip-cookies", name: "Chocolate Chip Cookies", category: "Desserts", price: 4.95 },
+  { id: "coconut-cookies", name: "Coconut Cookies", category: "Desserts", price: 3.95 },
+  {
+    id: "ooey-gooey-cake",
+    name: "Ooey Gooey Cake",
+    category: "Desserts",
+    price: 4.25,
+    description: "Yellow Cake Crust & Cream Cheese Filling",
+  },
+  { id: "mini-banana-loaf", name: "Mini Banana Loaf", category: "Desserts", price: 4.25 },
+  { id: "mini-chocolate-chip-banana-loaf", name: "Mini Chocolate Chip Banana Loaf", category: "Desserts", price: 4.75 },
+
   // ADD-ONS & EXTRAS
   { id: "extra-meat", name: "Extra Meat", category: "Add-ons & Extras", price: 2 },
   { id: "scrambled-egg", name: "Scrambled Egg", category: "Add-ons & Extras", price: 1.75 },
@@ -130,8 +163,31 @@ export const menuItems: MenuItem[] = [
   { id: "avocado", name: "Avocado", category: "Add-ons & Extras", price: 1.5 },
 
   // MILK TEA
-  { id: "milk-tea", name: "Milk Tea", category: "Milk Tea", price: 6.5 },
-  { id: "blended", name: "Blended", category: "Milk Tea", price: 7 },
+  { id: "milk-tea-original", name: "Original", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-honey", name: "Honey", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-okinawa", name: "Okinawa", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-jasmine", name: "Jasmine", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-oolong", name: "Oolong", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-rose", name: "Rose", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-lychee", name: "Lychee", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-taro", name: "Taro", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-coconut", name: "Coconut", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-mango", name: "Mango", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-passion-fruit", name: "Passion fruit", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-cantaloupe", name: "Cantaloupe", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-lavender", name: "Lavender", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-strawberry", name: "Strawberry", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-watermelon", name: "Watermelon", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-honeydew", name: "Honeydew", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-green-apple", name: "Green Apple", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-pineapple", name: "Pineapple", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-papaya", name: "Papaya", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-avocado", name: "Avocado", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-banana", name: "Banana", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-blueberry", name: "Blueberry", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-coffee", name: "Coffee", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-vanilla", name: "Vanilla", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
+  { id: "milk-tea-chocolate", name: "Chocolate", category: "Milk Tea", options: [{ name: "Milk Tea", price: 6.5 }, { name: "Blended", price: 7 }] },
 
   // SPECIALTY DRINKS
   { id: "matcha-milk-tea", name: "Matcha Milk Tea", category: "Specialty Drinks", price: 7 },

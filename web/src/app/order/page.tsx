@@ -9,6 +9,21 @@ type CartItem = {
   name: string;
   price: number;
   optionName?: string;
+  removedIngredients?: string[];
+  selectedAddOns?: SelectedAddOn[];
+  flavor?: string;
+  selectedToppings?: SelectedPricedItem[];
+};
+
+type SelectedAddOn = {
+  name: string;
+  price: number;
+  placement?: string;
+};
+
+type SelectedPricedItem = {
+  name: string;
+  price: number;
 };
 
 function createCartItem(item: MenuItem, optionName?: string): CartItem {
@@ -52,6 +67,31 @@ function normalizeCart(savedCart: string): CartItem[] {
   });
 }
 
+function getCustomizationKey(item: CartItem) {
+  return [
+    item.itemId,
+    item.optionName ?? "default",
+    item.removedIngredients?.join(",") ?? "no-removals",
+    item.selectedAddOns
+      ?.map((addOn) => `${addOn.name}:${addOn.price}:${addOn.placement ?? "no-placement"}`)
+      .join(",") ?? "no-add-ons",
+    item.flavor ?? "no-flavor",
+    item.selectedToppings
+      ?.map((topping) => `${topping.name}:${topping.price}`)
+      .join(",") ?? "no-toppings",
+  ].join("-");
+}
+
+function formatSelectedAddOns(addOns: SelectedAddOn[]) {
+  return addOns
+    .map((addOn) => (addOn.placement ? `${addOn.name} (${addOn.placement})` : addOn.name))
+    .join(", ");
+}
+
+function formatPricedItems(items: SelectedPricedItem[]) {
+  return items.map((item) => item.name).join(", ");
+}
+
 export default function OrderPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -68,7 +108,7 @@ export default function OrderPage() {
   }, []);
 
   const groupedCartItems = cart.reduce((acc, item) => {
-    const groupKey = `${item.itemId}-${item.optionName ?? "default"}`;
+    const groupKey = getCustomizationKey(item);
     const existingItem = acc.find((cartItem) => cartItem.groupKey === groupKey);
 
     if (existingItem) {
@@ -169,6 +209,21 @@ export default function OrderPage() {
                     <span>
                       {item.name}
                       {item.optionName ? ` (${item.optionName})` : ""} x{item.quantity}
+                      {item.removedIngredients && item.removedIngredients.length > 0 && (
+                        <span className="block text-xs text-gray-600">
+                          No {item.removedIngredients.join(", ")}
+                        </span>
+                      )}
+                      {item.selectedAddOns && item.selectedAddOns.length > 0 && (
+                        <span className="block text-xs text-gray-600">
+                          Add {formatSelectedAddOns(item.selectedAddOns)}
+                        </span>
+                      )}
+                      {item.selectedToppings && item.selectedToppings.length > 0 && (
+                        <span className="block text-xs text-gray-600">
+                          Toppings: {formatPricedItems(item.selectedToppings)}
+                        </span>
+                      )}
                     </span>
                     <span>${(item.price * item.quantity).toFixed(2)}</span>
                   </li>
