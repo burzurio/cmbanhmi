@@ -5,25 +5,35 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { customerName, pickupTime, pickupNotes, total } = body;
+    const { customerName, pickupTime, pickupNotes, total, items } = body;
 
-    if (!customerName || !pickupTime || !total) {
+    if (!customerName || !pickupTime || !total || !items?.length) {
       return NextResponse.json(
         { success: false, error: "Missing required order fields" },
         { status: 400 }
       );
     }
 
-    const result = await pool.query(
+    const orderResult = await pool.query(
       `INSERT INTO orders (customer_name, pickup_time, pickup_notes, total)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
       [customerName, pickupTime, pickupNotes, total]
     );
 
+    const order = orderResult.rows[0];
+
+    for (const item of items) {
+      await pool.query(
+        `INSERT INTO order_items (order_id, item_name, quantity, price)
+         VALUES ($1, $2, $3, $4)`,
+        [order.id, item.name, item.quantity, item.price]
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      order: result.rows[0],
+      order,
     });
   } catch (error) {
     console.error(error);
