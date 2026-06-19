@@ -65,7 +65,7 @@ const addOnsWithPlacement = ["Chili Oil", "Kimchi", "Apple Kimchi"];
 const addOnPlacementOptions: AddOnPlacement[] = ["On sandwich", "On the side"];
 const defaultAddOnPlacement: AddOnPlacement = "On sandwich";
 const noodleTypes: NoodleType[] = ["Udon noodle", "Egg noodle"];
-const optionCustomizationItemIds = [12, 13, 14, 15, 16, 17];
+const optionCustomizationItemIds = [12, 13, 14, 15, 16, 17, 20];
 
 const drinkToppings = [
   { name: "Boba", price: 0.75 },
@@ -142,7 +142,10 @@ function isStirFryNoodlesItem(item: MenuItem) {
 }
 
 function isMilkTeaFlavorItem(item: MenuItem) {
-  return item.category === "Milk Tea" && getItemOptions(item).length > 0;
+  return ( 
+    (item.category === "Milk Tea" || item.category === "Specialty Drinks") &&
+     getItemOptions(item).length > 0
+  );
 }
 
 function getCustomizationKey(item: CartItem) {
