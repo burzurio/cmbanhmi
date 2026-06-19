@@ -1,8 +1,25 @@
 import { pool } from "@/lib/db";
 import { NextResponse } from "next/server";
 
+const orderStatuses = ["NEW", "PREPARING", "READY", "COMPLETE"] as const;
+
+type OrderStatus = (typeof orderStatuses)[number];
+
+function isOrderStatus(status: unknown): status is OrderStatus {
+  return typeof status === "string" && orderStatuses.includes(status as OrderStatus);
+}
+
+async function ensureOrderStatusColumn() {
+  await pool.query(
+    `ALTER TABLE orders
+     ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'NEW'`
+  );
+}
+
 export async function GET() {
   try {
+    await ensureOrderStatusColumn();
+
     const result = await pool.query(
       `SELECT
         orders.*,
@@ -35,6 +52,52 @@ export async function GET() {
 
     return NextResponse.json(
       { success: false, error: "Failed to fetch orders" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    await ensureOrderStatusColumn();
+
+    const body = (await request.json()) as {
+      orderId?: unknown;
+      status?: unknown;
+    };
+    const orderId = Number(body.orderId);
+
+    if (!Number.isInteger(orderId) || !isOrderStatus(body.status)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid order status update" },
+        { status: 400 }
+      );
+    }
+
+    const result = await pool.query(
+      `UPDATE orders
+       SET status = $1
+       WHERE id = $2
+       RETURNING *`,
+      [body.status, orderId]
+    );
+
+    if (result.rowCount === 0) {
+      return NextResponse.json(
+        { success: false, error: "Order not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      order: result.rows[0],
+    });
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { success: false, error: "Failed to update order status" },
       { status: 500 }
     );
   }

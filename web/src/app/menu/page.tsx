@@ -1,25 +1,16 @@
 "use client";
 
 import { menuCategories, menuItems, type MenuItem } from "@/lib/menu";
-import Image from "next/image";
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import SiteHeader from "@/components/SiteHeader";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-const logoMenuLinks = [
-  { href: "/", label: "Home" },
-  { href: "/menu", label: "Menu" },
-  { href: "/order", label: "Order" },
-  { href: "/about", label: "About" },
-  { href: "/about#contact", label: "Contact" },
-  { href: "/#rewards", label: "Rewards" },
-];
 
 export type CartItem = {
   cartId: string;
   itemId: MenuItem["id"];
   name: string;
   price: number;
+  quantity?: number;
   optionName?: string;
   removedIngredients?: string[];
   selectedAddOns?: SelectedAddOn[];
@@ -117,7 +108,7 @@ function getPriceLabel(item: MenuItem) {
   return "Price unavailable";
 }
 
-function createCartItem(item: MenuItem): CartItem {
+function createCartItem(item: MenuItem, quantity = 1): CartItem {
   const defaultOption = item.options?.[0];
 
   return {
@@ -125,8 +116,38 @@ function createCartItem(item: MenuItem): CartItem {
     itemId: item.id,
     name: item.name,
     price: item.price ?? defaultOption?.price ?? 0,
+    quantity,
     optionName: defaultOption?.name,
   };
+}
+
+function isCartItem(item: unknown): item is CartItem {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    "cartId" in item &&
+    "itemId" in item &&
+    "name" in item &&
+    "price" in item &&
+    typeof item.price === "number"
+  );
+}
+
+function normalizeCart(savedCart: string): CartItem[] {
+  const parsed = JSON.parse(savedCart) as unknown;
+
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+
+  return parsed.flatMap((cartEntry) => {
+    if (isCartItem(cartEntry)) {
+      return [cartEntry];
+    }
+
+    const item = menuItems.find((menuItem) => menuItem.id === cartEntry);
+    return item ? [createCartItem(item)] : [];
+  });
 }
 
 function isBanhMiItem(item: MenuItem) {
@@ -148,21 +169,6 @@ function isMilkTeaFlavorItem(item: MenuItem) {
   );
 }
 
-function getCustomizationKey(item: CartItem) {
-  return [
-    item.itemId,
-    item.optionName ?? "default",
-    item.removedIngredients?.join(",") ?? "no-removals",
-    item.selectedAddOns
-      ?.map((addOn) => `${addOn.name}:${addOn.price}:${addOn.placement ?? "no-placement"}`)
-      .join(",") ?? "no-add-ons",
-    item.flavor ?? "no-flavor",
-    item.selectedToppings
-      ?.map((topping) => `${topping.name}:${topping.price}`)
-      .join(",") ?? "no-toppings",
-  ].join("-");
-}
-
 function hasPlacementOption(addOnName: string) {
   return addOnsWithPlacement.includes(addOnName);
 }
@@ -173,14 +179,49 @@ function formatSelectedAddOns(addOns: SelectedAddOn[]) {
     .join(", ");
 }
 
-function formatPricedItems(items: Array<{ name: string }>) {
+function formatPricedItems(items: SelectedTopping[]) {
   return items.map((item) => item.name).join(", ");
+}
+
+function getBaseItemName(item: CartItem) {
+  return menuItems.find((menuItem) => menuItem.id === item.itemId)?.name ?? item.name;
+}
+
+function getCartItemDetails(item: CartItem) {
+  const baseName = getBaseItemName(item);
+  const details: string[] = [];
+
+  if (item.name !== baseName && item.name.startsWith(baseName)) {
+    const optionText = item.name.slice(baseName.length).trim();
+
+    if (optionText) {
+      details.push(`Option: ${optionText}`);
+    }
+  }
+
+  if (item.optionName) {
+    details.push(`Option: ${item.optionName}`);
+  }
+
+  if (item.removedIngredients?.length) {
+    details.push(`No ${item.removedIngredients.join(", ")}`);
+  }
+
+  if (item.selectedAddOns?.length) {
+    details.push(`Add ${formatSelectedAddOns(item.selectedAddOns)}`);
+  }
+
+  if (item.selectedToppings?.length) {
+    details.push(`Toppings: ${formatPricedItems(item.selectedToppings)}`);
+  }
+
+  return details;
 }
 
 export default function MenuPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const router = useRouter();
-  const [logoMenuOpen, setLogoMenuOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [includedIngredients, setIncludedIngredients] = useState(defaultBanhMiIngredients);
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
@@ -188,8 +229,11 @@ export default function MenuPage() {
   const [selectedOptionName, setSelectedOptionName] = useState("");
   const [selectedNoodleType, setSelectedNoodleType] = useState<NoodleType>(noodleTypes[0]);
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [toast, setToast] = useState<{ message: string; id: number } | null>(null);
 
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  const cartItemCount = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0);
   const defaultIngredientsForSelectedItem = selectedItem
     ? getDefaultIngredientsForItem(selectedItem)
     : defaultBanhMiIngredients;
@@ -214,24 +258,37 @@ export default function MenuPage() {
           : getDefaultPrice(selectedItem) + selectedAddOnsTotal)
     : 0;
 
-  const groupedCartItems = useMemo(() => {
-    return cart.reduce(
-      (acc, item) => {
-        const groupKey = getCustomizationKey(item);
-        const existingItem = acc.find((cartItem) => cartItem.groupKey === groupKey);
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
 
-        if (existingItem) {
-          existingItem.quantity += 1;
-          existingItem.cartIds.push(item.cartId);
-        } else {
-          acc.push({ ...item, groupKey, quantity: 1, cartIds: [item.cartId] });
-        }
+    if (savedCart) {
+      setCart(normalizeCart(savedCart));
+    }
+  }, []);
 
-        return acc;
-      },
-      [] as Array<CartItem & { groupKey: string; quantity: number; cartIds: string[] }>
-    );
-  }, [cart]);
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, 1800);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
+
+  function showAddedToast(itemName: string) {
+    setToast({
+      message: `${itemName} added`,
+      id: Date.now(),
+    });
+  }
+
+  function goToOrder() {
+    localStorage.setItem("cart", JSON.stringify(cart));
+    router.push("/order");
+  }
 
   function openBanhMiModal(item: MenuItem) {
     setSelectedItem(item);
@@ -241,6 +298,7 @@ export default function MenuPage() {
     setSelectedOptionName("");
     setSelectedNoodleType(noodleTypes[0]);
     setSelectedToppings([]);
+    setSelectedQuantity(1);
   }
 
   function openOptionCustomizationModal(item: MenuItem) {
@@ -251,6 +309,7 @@ export default function MenuPage() {
     setSelectedOptionName(getItemOptions(item)[0]?.name ?? "");
     setSelectedNoodleType(noodleTypes[0]);
     setSelectedToppings([]);
+    setSelectedQuantity(1);
   }
 
   function openDrinkCustomizationModal(item: MenuItem) {
@@ -261,6 +320,18 @@ export default function MenuPage() {
     setSelectedOptionName("");
     setSelectedNoodleType(noodleTypes[0]);
     setSelectedToppings([]);
+    setSelectedQuantity(1);
+  }
+
+  function openBasicItemModal(item: MenuItem) {
+    setSelectedItem(item);
+    setIncludedIngredients(defaultBanhMiIngredients);
+    setSelectedAddOns([]);
+    setAddOnPlacements({});
+    setSelectedOptionName("");
+    setSelectedNoodleType(noodleTypes[0]);
+    setSelectedToppings([]);
+    setSelectedQuantity(1);
   }
 
   function closeBanhMiModal() {
@@ -271,6 +342,7 @@ export default function MenuPage() {
     setSelectedOptionName("");
     setSelectedNoodleType(noodleTypes[0]);
     setSelectedToppings([]);
+    setSelectedQuantity(1);
   }
 
   function toggleIngredient(ingredient: string) {
@@ -318,6 +390,24 @@ export default function MenuPage() {
     );
   }
 
+  function decrementQuantity() {
+    setSelectedQuantity((currentQuantity) => Math.max(1, currentQuantity - 1));
+  }
+
+  function incrementQuantity() {
+    setSelectedQuantity((currentQuantity) => currentQuantity + 1);
+  }
+
+  function addBasicItemToCart() {
+    if (!selectedItem) {
+      return;
+    }
+
+    setCart((currentCart) => [...currentCart, createCartItem(selectedItem, selectedQuantity)]);
+    showAddedToast(selectedItem.name);
+    closeBanhMiModal();
+  }
+
   function addCustomizedItemToCart() {
     if (!selectedItem) {
       return;
@@ -330,7 +420,7 @@ export default function MenuPage() {
     setCart((currentCart) => [
       ...currentCart,
       {
-        ...createCartItem(selectedItem),
+        ...createCartItem(selectedItem, selectedQuantity),
         price: selectedItemTotal,
         removedIngredients,
         selectedAddOns: sandwichAddOns
@@ -344,6 +434,7 @@ export default function MenuPage() {
           })),
       },
     ]);
+    showAddedToast(selectedItem.name);
     closeBanhMiModal();
   }
 
@@ -355,7 +446,7 @@ export default function MenuPage() {
     setCart((currentCart) => [
       ...currentCart,
       {
-        ...createCartItem(selectedItem),
+        ...createCartItem(selectedItem, selectedQuantity),
         name: `${selectedItem.name} ${selectedDrinkOption.name}`,
         price: selectedItemTotal,
         optionName: undefined,
@@ -365,6 +456,7 @@ export default function MenuPage() {
           .map((topping) => ({ name: topping.name, price: topping.price })),
       },
     ]);
+    showAddedToast(selectedItem.name);
     closeBanhMiModal();
   }
 
@@ -376,171 +468,22 @@ export default function MenuPage() {
     setCart((currentCart) => [
       ...currentCart,
       {
-        ...createCartItem(selectedItem),
+        ...createCartItem(selectedItem, selectedQuantity),
         price: selectedOption.price,
         optionName: isStirFryNoodlesItem(selectedItem)
           ? `${selectedOption.name} / ${selectedNoodleType}`
           : selectedOption.name,
       },
     ]);
+    showAddedToast(selectedItem.name);
     closeBanhMiModal();
   }
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <header className="fixed inset-x-0 top-0 z-50 w-screen border-b border-gray-200 bg-white">
-        <div className="flex w-full items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setLogoMenuOpen((value) => !value)}
-              className="flex h-11 w-24 items-center justify-start rounded-md focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
-              aria-expanded={logoMenuOpen}
-              aria-haspopup="menu"
-              aria-label="Open site menu"
-            >
-              <Image
-                src="/images/logo.png"
-                alt="CM Banh Mi"
-                width={96}
-                height={44}
-                priority
-                className="h-11 w-24 object-contain"
-              />
-            </button>
+      <SiteHeader />
 
-            {logoMenuOpen && (
-              <div className="absolute left-0 top-full mt-2 w-44 rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
-                <nav aria-label="Logo menu">
-                  {logoMenuLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setLogoMenuOpen(false)}
-                      className="block px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 hover:text-red-600"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            )}
-          </div>
-
-          <nav className="hidden flex-1 items-center justify-center gap-6 md:flex">
-            <Link href="/" className="text-sm font-medium hover:text-red-600">Home</Link>
-            <Link href="/menu" className="text-sm font-medium hover:text-red-600">Menu</Link>
-            <Link href="/about" className="text-sm font-medium hover:text-red-600">About</Link>
-            <Link href="/about#contact" className="text-sm font-medium hover:text-red-600">Contact</Link>
-            <Link href="/#rewards" className="text-sm font-medium hover:text-red-600">Rewards</Link>
-          </nav>
-
-          <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
-            <a
-              href="https://www.instagram.com/cmbanhmi/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="relative z-10 inline-flex h-9 w-9 flex-none items-center justify-center overflow-hidden rounded-full border border-pink-700 bg-pink-600 text-white shadow-sm transition hover:bg-pink-700"
-              aria-label="CM Banh Mi on Instagram"
-            >
-              <svg className="block h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="2" />
-                <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
-                <circle cx="17.5" cy="6.5" r="1.25" fill="currentColor" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </header>
-
-      <main className="px-4 pb-5 pt-20 sm:px-6 lg:px-8">
-       <div className="sticky top-20 z-40 mx-auto mb-4 max-w-5xl rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm shadow-md">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-bold text-orange-700">Current Order</h2>
-            <div className="flex items-center gap-3">
-              <span className="font-semibold text-orange-700">
-                {cart.length} item{cart.length === 1 ? "" : "s"}
-              </span>
-
-              {cart.length > 0 && (
-                <button
-                  onClick={() => setCart([])}
-                  className="rounded bg-gray-800 px-2 py-1 text-xs font-semibold text-white hover:bg-black"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="mx-auto max-w-5xl">
-            {cart.length === 0 ? (
-              <p className="text-gray-600">No items added yet.</p>
-            ) : (
-              <>
-                <ul className="space-y-1">
-                  {groupedCartItems.map((item) => (
-                    <li key={item.groupKey} className="flex items-center justify-between text-gray-800">
-                      <span>
-                        {item.name} x{item.quantity}
-                        {item.optionName && (
-                          <span className="block text-xs text-gray-600">
-                            {item.optionName}
-                          </span>
-                        )}
-                        {item.removedIngredients && item.removedIngredients.length > 0 && (
-                          <span className="block text-xs text-gray-600">
-                            No {item.removedIngredients.join(", ")}
-                          </span>
-                        )}
-                        {item.selectedAddOns && item.selectedAddOns.length > 0 && (
-                          <span className="block text-xs text-gray-600">
-                            Add {formatSelectedAddOns(item.selectedAddOns)}
-                          </span>
-                        )}
-                        {item.selectedToppings && item.selectedToppings.length > 0 && (
-                          <span className="block text-xs text-gray-600">
-                            Toppings: {formatPricedItems(item.selectedToppings)}
-                          </span>
-                        )}
-                      </span>
-
-                      <div className="flex items-center gap-2">
-                        <span>${(item.price * item.quantity).toFixed(2)}</span>
-
-                        <button
-                          onClick={() => {
-                            const cartIdToRemove = item.cartIds[0];
-                            setCart(cart.filter((cartItem) => cartItem.cartId !== cartIdToRemove));
-                          }}
-                          className="rounded bg-red-500 px-2 py-1 text-xs font-semibold text-white hover:bg-red-600"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-3 flex justify-between border-t border-orange-200 pt-2 font-bold text-orange-700">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
-                <button
-                  disabled={cart.length === 0}
-                  onClick={() => {
-                    localStorage.setItem("cart", JSON.stringify(cart));
-                    router.push("/order");
-                  }}
-                  className="mt-4 w-full rounded bg-orange-500 px-4 py-2 font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
-                >
-                  Checkout
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
+      <main className="px-4 pb-24 pt-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           {menuCategories.map((category) => (
             <section key={category} className="mb-8 last:mb-0">
@@ -604,7 +547,7 @@ export default function MenuPage() {
                             return;
                           }
 
-                          setCart((currentCart) => [...currentCart, createCartItem(item)]);
+                          openBasicItemModal(item);
                         }}
                         disabled={getDefaultPrice(item) === 0}
                         className="mt-2 rounded bg-orange-500 px-2 py-1 text-xs font-semibold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
@@ -618,6 +561,120 @@ export default function MenuPage() {
           ))}
         </div>
       </main>
+
+      {toast && (
+        <div className="fixed bottom-24 right-4 z-50 rounded-md bg-gray-950 px-4 py-3 text-sm font-bold text-white shadow-lg sm:right-6">
+          {toast.message}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setCartOpen(true)}
+        className="fixed bottom-5 right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 sm:right-6"
+        aria-label={`View order with ${cartItemCount} item${cartItemCount === 1 ? "" : "s"}`}
+      >
+        <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M7 8V7a5 5 0 0 1 10 0v1"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <path
+            d="M5 8h14l-1 12H6L5 8Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+        </svg>
+        {cartItemCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-950 px-1.5 text-xs font-extrabold text-white">
+            {cartItemCount}
+          </span>
+        )}
+      </button>
+
+      {cartOpen && (
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-black/40"
+          onClick={() => setCartOpen(false)}
+        >
+          <aside
+            className="flex h-full w-full max-w-md flex-col bg-white shadow-xl"
+            aria-label="Current order"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 p-4">
+              <div>
+                <p className="text-sm font-bold uppercase text-orange-600">Current order</p>
+                <h2 className="text-2xl font-extrabold text-gray-950">
+                  {cartItemCount} item{cartItemCount === 1 ? "" : "s"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCartOpen(false)}
+                className="rounded-md px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {cart.length === 0 ? (
+                <p className="rounded-md border border-gray-200 bg-gray-50 p-4 text-gray-600">
+                  Your order is empty.
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {cart.map((item) => {
+                    const quantity = item.quantity ?? 1;
+                    const details = getCartItemDetails(item);
+
+                    return (
+                      <li key={item.cartId} className="py-4 first:pt-0 last:pb-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-extrabold text-gray-950">
+                              {quantity}x {getBaseItemName(item)}
+                            </p>
+                            {details.length > 0 && (
+                              <ul className="mt-1 space-y-0.5 text-sm font-medium text-gray-600">
+                                {details.map((detail) => (
+                                  <li key={detail}>{detail}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                          <p className="shrink-0 font-bold text-gray-800">
+                            ${(item.price * quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div className="border-t border-gray-200 p-4">
+              <div className="flex items-center justify-between text-lg font-extrabold text-gray-950">
+                <span>Total</span>
+                <span>${cartTotal.toFixed(2)}</span>
+              </div>
+              <button
+                type="button"
+                onClick={goToOrder}
+                disabled={cart.length === 0}
+                className="mt-4 w-full rounded bg-orange-500 px-4 py-3 font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                Checkout
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
 
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
@@ -782,7 +839,7 @@ export default function MenuPage() {
                     </section>
                   )}
                 </>
-              ) : (
+              ) : isOptionCustomizationItem(selectedItem) ? (
                 <section>
                   <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">
                     {isStirFryNoodlesItem(selectedItem) ? "Protein" : "Wonton Option"}
@@ -835,7 +892,35 @@ export default function MenuPage() {
                     </div>
                   )}
                 </section>
-              )}
+              ) : null}
+
+              <section>
+                <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">
+                  Quantity
+                </h3>
+                <div className="mt-3 inline-flex items-center rounded-md border border-gray-200">
+                  <button
+                    type="button"
+                    onClick={decrementQuantity}
+                    disabled={selectedQuantity === 1}
+                    className="h-10 w-10 text-xl font-bold text-gray-800 hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-300"
+                    aria-label="Decrease quantity"
+                  >
+                    -
+                  </button>
+                  <span className="flex h-10 min-w-12 items-center justify-center border-x border-gray-200 px-4 text-lg font-extrabold">
+                    {selectedQuantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={incrementQuantity}
+                    className="h-10 w-10 text-xl font-bold text-gray-800 hover:bg-gray-50"
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
+              </section>
             </div>
 
             <div className="flex gap-3 border-t border-orange-100 p-5">
@@ -853,7 +938,9 @@ export default function MenuPage() {
                     ? addCustomizedItemToCart
                     : isMilkTeaFlavorItem(selectedItem)
                       ? addDrinkCustomizedItemToCart
-                      : addOptionCustomizedItemToCart
+                      : isOptionCustomizationItem(selectedItem)
+                        ? addOptionCustomizedItemToCart
+                        : addBasicItemToCart
                 }
                 disabled={isMilkTeaFlavorItem(selectedItem) && !selectedDrinkOption}
                 className="flex-1 rounded bg-orange-500 px-4 py-2 font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"

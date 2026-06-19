@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+const orderStatuses = ["NEW", "PREPARING", "READY", "COMPLETE"] as const;
+
+type OrderStatus = (typeof orderStatuses)[number];
+
 type PricedCustomization = {
   name: string;
   price?: number;
@@ -32,12 +36,19 @@ type Order = {
   pickup_notes: string | null;
   total: string | number;
   created_at: string;
+  status: OrderStatus;
   items: OrderItem[];
 };
 
 type OrdersResponse = {
   success: boolean;
   orders?: Order[];
+  error?: string;
+};
+
+type StatusUpdateResponse = {
+  success: boolean;
+  order?: Order;
   error?: string;
 };
 
@@ -95,10 +106,28 @@ function getCustomizationLines(customizations: OrderItemCustomizations | null) {
   return lines;
 }
 
+function getStatusClassName(status: OrderStatus) {
+  if (status === "NEW") {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+
+  if (status === "PREPARING") {
+    return "border-yellow-200 bg-yellow-50 text-yellow-800";
+  }
+
+  if (status === "READY") {
+    return "border-green-200 bg-green-50 text-green-700";
+  }
+
+  return "border-gray-300 bg-gray-100 text-gray-700";
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
+  const [showCompleted, setShowCompleted] = useState(false);
   const [error, setError] = useState("");
 
   const fetchOrders = useCallback(async (showRefreshing = false) => {
@@ -134,6 +163,38 @@ export default function AdminOrdersPage() {
     return () => window.clearInterval(intervalId);
   }, [fetchOrders]);
 
+  async function updateOrderStatus(orderId: number, status: OrderStatus) {
+    setUpdatingOrderId(orderId);
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId, status }),
+      });
+      const data = (await response.json()) as StatusUpdateResponse;
+
+      if (!response.ok || !data.success || !data.order) {
+        throw new Error(data.error ?? "Failed to update order status");
+      }
+
+      setOrders((currentOrders) =>
+        currentOrders.map((order) => (order.id === orderId ? { ...order, status } : order))
+      );
+      setError("");
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : "Failed to update order status");
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  }
+
+  const visibleOrders = showCompleted
+    ? orders
+    : orders.filter((order) => order.status !== "COMPLETE");
+
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-6 text-gray-950 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
@@ -143,14 +204,35 @@ export default function AdminOrdersPage() {
             <h1 className="text-3xl font-extrabold text-gray-950">Incoming Orders</h1>
           </div>
 
-          <button
-            type="button"
-            onClick={() => void fetchOrders(true)}
-            disabled={refreshing}
-            className="rounded bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-400"
-          >
-            {refreshing ? "Refreshing..." : "Refresh"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 rounded border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-800">
+              <input
+                type="checkbox"
+                checked={showCompleted}
+                onChange={(event) => setShowCompleted(event.target.checked)}
+                className="h-4 w-4 accent-orange-500"
+              />
+              Show completed orders
+            </label>
+
+            <button
+              type="button"
+              onClick={() => void fetchOrders(true)}
+              disabled={refreshing}
+              className="rounded bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-400"
+            >
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
+
+            <form action="/api/admin/logout" method="post">
+              <button
+                type="submit"
+                className="rounded bg-gray-800 px-4 py-2 text-sm font-bold text-white hover:bg-black"
+              >
+                Logout
+              </button>
+            </form>
+          </div>
         </div>
 
         {error && (
@@ -161,14 +243,16 @@ export default function AdminOrdersPage() {
 
         {loading ? (
           <p className="mt-8 text-lg font-semibold text-gray-700">Loading orders...</p>
-        ) : orders.length === 0 ? (
+        ) : visibleOrders.length === 0 ? (
           <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 text-center shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900">No orders yet</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              {orders.length === 0 ? "No orders yet" : "No active orders"}
+            </h2>
             <p className="mt-2 text-gray-600">New orders will appear here automatically.</p>
           </div>
         ) : (
           <div className="mt-6 grid gap-4">
-            {orders.map((order) => (
+            {visibleOrders.map((order) => (
               <article
                 key={order.id}
                 className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
@@ -180,6 +264,13 @@ export default function AdminOrdersPage() {
                     <p className="mt-2 text-base font-semibold text-orange-700">
                       Pickup: {formatPickupTime(order.pickup_time)}
                     </p>
+                    <p
+                      className={`mt-3 inline-flex rounded-full border px-3 py-1 text-sm font-extrabold ${getStatusClassName(
+                        order.status
+                      )}`}
+                    >
+                      {order.status}
+                    </p>
                   </div>
 
                   <div className="rounded-md bg-green-50 px-3 py-2 text-right">
@@ -188,6 +279,22 @@ export default function AdminOrdersPage() {
                       {formatCurrency(order.total)}
                     </p>
                   </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
+                  {orderStatuses.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => void updateOrderStatus(order.id, status)}
+                      disabled={order.status === status || updatingOrderId === order.id}
+                      className={`rounded border px-3 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 ${getStatusClassName(
+                        status
+                      )}`}
+                    >
+                      {status}
+                    </button>
+                  ))}
                 </div>
 
                 {order.pickup_notes && (

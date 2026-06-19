@@ -1,6 +1,8 @@
 "use client";
 
 import { menuItems, type MenuItem } from "@/lib/menu";
+import SiteHeader from "@/components/SiteHeader";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type CartItem = {
@@ -8,6 +10,7 @@ type CartItem = {
   itemId: MenuItem["id"];
   name: string;
   price: number;
+  quantity?: number;
   optionName?: string;
   removedIngredients?: string[];
   selectedAddOns?: SelectedAddOn[];
@@ -26,7 +29,7 @@ type SelectedPricedItem = {
   price: number;
 };
 
-function createCartItem(item: MenuItem, optionName?: string): CartItem {
+function createCartItem(item: MenuItem, optionName?: string, quantity = 1): CartItem {
   const option = item.options?.find((itemOption) => itemOption.name === optionName) ?? item.options?.[0];
 
   return {
@@ -34,6 +37,7 @@ function createCartItem(item: MenuItem, optionName?: string): CartItem {
     itemId: item.id,
     name: item.name,
     price: item.price ?? option?.price ?? 0,
+    quantity,
     optionName: option?.name,
   };
 }
@@ -93,6 +97,7 @@ function formatPricedItems(items: SelectedPricedItem[]) {
 }
 
 export default function OrderPage() {
+  const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [customerName, setCustomerName] = useState("");
@@ -112,15 +117,15 @@ export default function OrderPage() {
     const existingItem = acc.find((cartItem) => cartItem.groupKey === groupKey);
 
     if (existingItem) {
-      existingItem.quantity += 1;
+      existingItem.quantity += item.quantity ?? 1;
     } else {
-      acc.push({ ...item, groupKey, quantity: 1 });
+      acc.push({ ...item, groupKey, quantity: item.quantity ?? 1 });
     }
 
     return acc;
   }, [] as Array<CartItem & { groupKey: string; quantity: number }>);
 
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  const total = cart.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0);
   
   function formatPickupTime(time: string) {
   if (!time) return "";
@@ -132,6 +137,11 @@ export default function OrderPage() {
   const formattedHour = hour % 12 || 12;
 
   return `${formattedHour}:${minutes} ${suffix}`;
+  }
+
+  function handleAddItems() {
+    localStorage.setItem("cart", JSON.stringify(cart));
+    router.push("/menu");
   }
   
       async function handlePlaceOrder() {
@@ -170,28 +180,60 @@ export default function OrderPage() {
     }
   if (orderPlaced) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-4 text-gray-900">
-      <div className="max-w-md rounded-lg border border-green-200 bg-green-50 p-6 text-center">
-        <h1 className="text-3xl font-extrabold text-green-700">
-          Order Placed!
-        </h1>
-        <p className="mt-3 text-gray-700">
-          Thank you, {customerName}. Your order has been received.
-        </p>
-        <p className="mt-2 text-gray-600">
-          Pickup time: {formatPickupTime(pickupTime)}
-        </p>
-      </div>
-    </main>
+    <div className="min-h-screen bg-white text-gray-900">
+      <SiteHeader />
+      <main className="flex min-h-screen items-center justify-center px-4 pb-12 pt-24">
+        <div className="max-w-md rounded-lg border border-green-200 bg-green-50 p-6 text-center">
+          <h1 className="text-3xl font-extrabold text-green-700">
+            Order Placed!
+          </h1>
+          <p className="mt-3 text-gray-700">
+            Thank you, {customerName}. Your order has been received.
+          </p>
+          <p className="mt-2 text-gray-600">
+            Pickup time: {formatPickupTime(pickupTime)}
+          </p>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => router.push("/menu")}
+              className="flex-1 rounded bg-green-700 px-4 py-3 font-bold text-white hover:bg-green-800"
+            >
+              Order Another Meal
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="flex-1 rounded border border-green-300 bg-white px-4 py-3 font-bold text-green-700 hover:bg-green-100"
+            >
+              Return Home
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
   );
   }
   return (
     <main className="min-h-screen bg-white px-4 py-8 text-gray-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-extrabold text-orange-500">Checkout</h1>
-        <p className="mt-2 text-gray-600">
-          Review your order and enter pickup details.
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold text-orange-500">Checkout</h1>
+            <p className="mt-2 text-gray-600">
+              Review your order and enter pickup details.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAddItems}
+            className="rounded border border-orange-300 px-4 py-2 text-sm font-bold text-orange-700 hover:bg-orange-50"
+          >
+            Add Items
+          </button>
+        </div>
 
         <section className="mt-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
           <h2 className="text-lg font-bold text-orange-700">Order Summary</h2>
