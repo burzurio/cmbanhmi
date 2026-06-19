@@ -24,10 +24,25 @@ export async function POST(request: Request) {
     const order = orderResult.rows[0];
 
     for (const item of items) {
+      const customizations = {
+        optionName: item.optionName ?? null,
+        removedIngredients: item.removedIngredients ?? [],
+        selectedAddOns: item.selectedAddOns ?? [],
+        flavor: item.flavor ?? null,
+        selectedToppings: item.selectedToppings ?? [],
+      };
+
       await pool.query(
-        `INSERT INTO order_items (order_id, item_name, quantity, price)
-         VALUES ($1, $2, $3, $4)`,
-        [order.id, item.name, item.quantity, item.price]
+        `INSERT INTO order_items 
+          (order_id, item_name, quantity, price, customizations)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          order.id,
+          item.name,
+          item.quantity,
+          item.price,
+          JSON.stringify(customizations),
+        ]
       );
     }
 
