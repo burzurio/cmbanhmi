@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: 0,
-    path: "/admin",
+    path: "/",
   });
 
   return response;

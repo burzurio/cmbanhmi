@@ -1,10 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { formatPhoneNumber } from "@/lib/format";
 
-const orderStatuses = ["NEW", "PREPARING", "READY", "COMPLETE"] as const;
+type OrderStatus = "NEW" | "PREPARING" | "READY" | "COMPLETE";
 
-type OrderStatus = (typeof orderStatuses)[number];
+const statusActions: { status: Exclude<OrderStatus, "NEW">; label: string }[] = [
+  { status: "PREPARING", label: "Mark Preparing" },
+  { status: "READY", label: "Mark Ready" },
+  { status: "COMPLETE", label: "Mark Complete" },
+];
 
 type PricedCustomization = {
   name: string;
@@ -32,7 +37,9 @@ type OrderItem = {
 type Order = {
   id: number;
   customer_name: string;
+  customer_phone: string | null;
   pickup_time: string;
+  estimated_ready_time: string | null;
   pickup_notes: string | null;
   total: string | number;
   created_at: string;
@@ -56,22 +63,15 @@ function formatCurrency(value: string | number) {
   return `$${Number(value).toFixed(2)}`;
 }
 
-function formatPickupTime(time: string) {
+function formatEstimatedReadyTime(time: string | null) {
   if (!time) {
-    return "";
+    return "Not available";
   }
 
-  const [hours, minutes] = time.split(":");
-  const hour = Number(hours);
-
-  if (Number.isNaN(hour) || !minutes) {
-    return time;
-  }
-
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const formattedHour = hour % 12 || 12;
-
-  return `${formattedHour}:${minutes} ${suffix}`;
+  return new Date(time).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function formatPricedItems(items: PricedCustomization[]) {
@@ -261,8 +261,16 @@ export default function AdminOrdersPage() {
                   <div>
                     <h2 className="text-2xl font-extrabold text-gray-950">Order #{order.id}</h2>
                     <p className="mt-1 text-xl font-bold text-gray-800">{order.customer_name}</p>
+                    {order.customer_phone && (
+                      <a
+                        href={`tel:${order.customer_phone}`}
+                        className="mt-1 block font-semibold text-blue-700 hover:underline"
+                      >
+                        {formatPhoneNumber(order.customer_phone)}
+                      </a>
+                    )}
                     <p className="mt-2 text-base font-semibold text-orange-700">
-                      Pickup: {formatPickupTime(order.pickup_time)}
+                      Estimated ready: {formatEstimatedReadyTime(order.estimated_ready_time)}
                     </p>
                     <p
                       className={`mt-3 inline-flex rounded-full border px-3 py-1 text-sm font-extrabold ${getStatusClassName(
@@ -282,7 +290,7 @@ export default function AdminOrdersPage() {
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
-                  {orderStatuses.map((status) => (
+                  {statusActions.map(({ status, label }) => (
                     <button
                       key={status}
                       type="button"
@@ -292,7 +300,7 @@ export default function AdminOrdersPage() {
                         status
                       )}`}
                     >
-                      {status}
+                      {updatingOrderId === order.id ? "Updating..." : label}
                     </button>
                   ))}
                 </div>

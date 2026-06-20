@@ -1,5 +1,6 @@
 import { pool } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
+import { NextRequest, NextResponse } from "next/server";
 
 const orderStatuses = ["NEW", "PREPARING", "READY", "COMPLETE"] as const;
 
@@ -9,17 +10,8 @@ function isOrderStatus(status: unknown): status is OrderStatus {
   return typeof status === "string" && orderStatuses.includes(status as OrderStatus);
 }
 
-async function ensureOrderStatusColumn() {
-  await pool.query(
-    `ALTER TABLE orders
-     ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'NEW'`
-  );
-}
-
 export async function GET() {
   try {
-    await ensureOrderStatusColumn();
-
     const result = await pool.query(
       `SELECT
         orders.*,
@@ -57,9 +49,14 @@ export async function GET() {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   try {
-    await ensureOrderStatusColumn();
+    if (request.cookies.get("admin_session")?.value !== "authenticated") {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
     const body = (await request.json()) as {
       orderId?: unknown;
@@ -89,9 +86,17 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const updatedOrder = result.rows[0];
+
+    if (body.status === "READY" && updatedOrder.customer_phone) {
+      console.log(
+        `Would send SMS to ${updatedOrder.customer_phone}: CM Banh Mi: Your order #${updatedOrder.id} is ready for pickup!`
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      order: result.rows[0],
+      order: updatedOrder,
     });
   } catch (error) {
     console.error(error);
@@ -107,20 +112,60 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { customerName, pickupTime, pickupNotes, total, items } = body;
+    const { customerName, customerPhone, estimatedReadyTime, pickupNotes, total, items } = body;
 
-    if (!customerName || !pickupTime || !total || !items?.length) {
+    if (
+      typeof customerName !== "string" ||
+      !customerName.trim() ||
+      typeof customerPhone !== "string" ||
+      !total ||
+      !Array.isArray(items) ||
+      !items.length
+    ) {
       return NextResponse.json(
         { success: false, error: "Missing required order fields" },
         { status: 400 }
       );
     }
 
+    const normalizedPhone = normalizePhoneNumber(customerPhone);
+
+    if (!isValidPhoneNumber(customerPhone)) {
+      return NextResponse.json(
+        { success: false, error: "Please enter a valid 10-digit phone number." },
+        { status: 400 }
+      );
+    }
+
+    if (
+      typeof estimatedReadyTime !== "string" ||
+      Number.isNaN(Date.parse(estimatedReadyTime))
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Invalid estimated ready time" },
+        { status: 400 }
+      );
+    }
+
+    const quantities = items.map((item: { quantity?: unknown }) => Number(item.quantity ?? 1));
+
+    if (quantities.some((quantity: number) => !Number.isInteger(quantity) || quantity < 1)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid order item quantity" },
+        { status: 400 }
+      );
+    }
+
+    const itemQuantity = quantities.reduce((sum: number, quantity: number) => sum + quantity, 0);
+    const readyTime = new Date(Date.now() + (15 + itemQuantity * 3) * 60_000);
+    const legacyPickupTime = readyTime.toISOString().slice(11, 16);
+
     const orderResult = await pool.query(
-      `INSERT INTO orders (customer_name, pickup_time, pickup_notes, total)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO orders
+        (customer_name, customer_phone, pickup_time, estimated_ready_time, pickup_notes, total)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [customerName, pickupTime, pickupNotes, total]
+      [customerName.trim(), normalizedPhone, legacyPickupTime, readyTime, pickupNotes, total]
     );
 
     const order = orderResult.rows[0];

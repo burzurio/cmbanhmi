@@ -1,6 +1,8 @@
 "use client";
 
 import { menuItems, type MenuItem } from "@/lib/menu";
+import { formatPhoneNumber } from "@/lib/format";
+import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 import SiteHeader from "@/components/SiteHeader";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -96,19 +98,35 @@ function formatPricedItems(items: SelectedPricedItem[]) {
   return items.map((item) => item.name).join(", ");
 }
 
+function calculateEstimatedReadyTime(cart: CartItem[]) {
+  const itemQuantity = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
+  return new Date(Date.now() + (15 + itemQuantity * 3) * 60_000).toISOString();
+}
+
+function formatReadyTime(time: string) {
+  return new Date(time).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export default function OrderPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [pickupNotes, setPickupNotes] = useState("");
-  const [pickupTime, setPickupTime] = useState("");
+  const [estimatedReadyTime, setEstimatedReadyTime] = useState("");
 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
 
     if (savedCart) {
-      setCart(normalizeCart(savedCart));
+      const normalizedCart = normalizeCart(savedCart);
+      setCart(normalizedCart);
+      setEstimatedReadyTime(calculateEstimatedReadyTime(normalizedCart));
     }
   }, []);
 
@@ -127,32 +145,31 @@ export default function OrderPage() {
 
   const total = cart.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0);
   
-  function formatPickupTime(time: string) {
-  if (!time) return "";
-
-  const [hours, minutes] = time.split(":");
-  const hour = Number(hours);
-
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const formattedHour = hour % 12 || 12;
-
-  return `${formattedHour}:${minutes} ${suffix}`;
-  }
-
   function handleAddItems() {
     localStorage.setItem("cart", JSON.stringify(cart));
     router.push("/menu");
   }
   
       async function handlePlaceOrder() {
-      if (!customerName || !pickupTime || groupedCartItems.length === 0) {
-        alert("Please enter your name, pickup time, and at least one item.");
+      if (!customerName.trim() || groupedCartItems.length === 0) {
+        alert("Please enter your name and at least one item.");
         return;
       }
 
+      const normalizedPhone = normalizePhoneNumber(customerPhone);
+
+      if (!isValidPhoneNumber(customerPhone)) {
+        setPhoneError("Please enter a valid 10-digit phone number.");
+        return;
+      }
+
+      setPhoneError("");
+      setCustomerPhone(normalizedPhone);
+
       const order = {
         customerName,
-        pickupTime,
+        customerPhone: normalizedPhone,
+        estimatedReadyTime,
         pickupNotes,
         items: groupedCartItems,
         total,
@@ -169,9 +186,13 @@ export default function OrderPage() {
 
       const data = await response.json();
 
-      if (!data.success) {
+      if (!response.ok || !data.success) {
         alert("Something went wrong placing your order.");
         return;
+      }
+
+      if (data.order?.estimated_ready_time) {
+        setEstimatedReadyTime(data.order.estimated_ready_time);
       }
 
       setOrderPlaced(true);
@@ -191,7 +212,10 @@ export default function OrderPage() {
             Thank you, {customerName}. Your order has been received.
           </p>
           <p className="mt-2 text-gray-600">
-            Pickup time: {formatPickupTime(pickupTime)}
+            Estimated ready time: {formatReadyTime(estimatedReadyTime)}
+          </p>
+          <p className="mt-2 font-semibold text-green-700">
+            We&apos;ll text you when your order is ready.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -222,7 +246,7 @@ export default function OrderPage() {
           <div>
             <h1 className="text-3xl font-extrabold text-orange-500">Checkout</h1>
             <p className="mt-2 text-gray-600">
-              Review your order and enter pickup details.
+              Review your order and enter your contact details.
             </p>
           </div>
 
@@ -298,15 +322,43 @@ export default function OrderPage() {
 
             <div>
               <label className="block text-sm font-semibold">
-                Pickup Time
+                Phone Number
               </label>
               <input
-                type="time"
-                value={pickupTime}
-                onChange={(event) => setPickupTime(event.target.value)}
+                type="tel"
+                value={customerPhone}
+                onChange={(event) => {
+                  const phone = event.target.value;
+                  setCustomerPhone(phone);
+                  setPhoneError(
+                    phone && !isValidPhoneNumber(phone)
+                      ? "Please enter a valid 10-digit phone number."
+                      : ""
+                  );
+                }}
+                onBlur={() => {
+                  if (isValidPhoneNumber(customerPhone)) {
+                    setCustomerPhone(formatPhoneNumber(customerPhone));
+                    setPhoneError("");
+                  } else {
+                    setPhoneError("Please enter a valid 10-digit phone number.");
+                  }
+                }}
                 className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
+                placeholder="(555) 123-4567"
+                autoComplete="tel"
+                required
               />
+              {phoneError && (
+                <p className="mt-1 text-sm font-semibold text-red-600">{phoneError}</p>
+              )}
             </div>
+
+            {estimatedReadyTime && groupedCartItems.length > 0 && (
+              <p className="rounded border border-orange-200 bg-orange-50 px-3 py-2 font-bold text-orange-700">
+                Estimated ready time: {formatReadyTime(estimatedReadyTime)}
+              </p>
+            )}
 
             <div>
               <label className="block text-sm font-semibold">
@@ -324,7 +376,7 @@ export default function OrderPage() {
         </section>
 
         <button
-          disabled={groupedCartItems.length === 0}
+          disabled={groupedCartItems.length === 0 || !isValidPhoneNumber(customerPhone)}
           onClick={handlePlaceOrder}
           className="mt-6 w-full rounded bg-orange-500 px-4 py-3 font-bold text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300"
         >
